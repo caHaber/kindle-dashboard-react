@@ -37,7 +37,7 @@ function CustomerOrdersTable() {
     const { fetchCustomerOrdersData, error } = useFetchCustomerOrdersData();
     // const [customerOrdersData, setCustomerOrdersData] = useState<{ username: string, email: string, totalAmount: number, orderDate: string }[]>([]);
     const [loading, setLoading] = useState(false);
-    const [customerOrdersData, setCustomerOrdersData] = useState<Object[]>([]);
+    const [customerOrdersData, setCustomerOrdersData] = useState<any[]>([]);
     const handleFetchCustomerOrdersData = async () => {
         setLoading(true);
         const result = await fetchCustomerOrdersData();
