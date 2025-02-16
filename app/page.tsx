@@ -2,16 +2,19 @@
 
 import { MotherDuckClientProvider, useMotherDuckClientState } from "@/lib/motherduck/context/motherduckClientContext";
 import { useCallback, useState, useEffect } from "react";
+import { GET_TOTAL_READING_AND_PAGE_FLIPS } from "@/lib/queries";
+import * as Plot from "@observablehq/plot";
+import { ObservablePlot } from "./components/ObservablePlot";
+// const SQL_QUERY_STRING = `SELECT * FROM "kindle-data".Kindle_BookRewards_Achievements_1 LIMIT 10`;
 
-const SQL_QUERY_STRING = `SELECT * FROM "kindle-data".Kindle_BookRewards_Achievements_1 LIMIT 10`;
-
-const useFetchCustomerOrdersData = () => {
+const useFetchKindleReadingData = () => {
     const { safeEvaluateQuery } = useMotherDuckClientState();
     const [error, setError] = useState<string | null>(null);
 
-    const fetchCustomerOrdersData = useCallback(async () => {
+    const fetchKindleReadingData = useCallback(async () => {
         try {
-            const safeResult = await safeEvaluateQuery(SQL_QUERY_STRING);
+            await safeEvaluateQuery("USE \"kindle-data\"");
+            const safeResult = await safeEvaluateQuery(GET_TOTAL_READING_AND_PAGE_FLIPS.query);
             if (safeResult.status === "success") {
                 setError(null);
                 return safeResult.result.data.toRows().map((row) => {
@@ -23,56 +26,74 @@ const useFetchCustomerOrdersData = () => {
                 return [];
             }
         } catch (error) {
-            setError("fetchCustomerOrdersData failed with error: " + error);
+            setError("fetchKindleReadingData failed with error: " + error);
             return [];
         }
 
     }, [safeEvaluateQuery]);
 
-    return { fetchCustomerOrdersData, error };
+    return { fetchKindleReadingData, error };
 }
 
 
-function CustomerOrdersTable() {
-    const { fetchCustomerOrdersData, error } = useFetchCustomerOrdersData();
-    // const [customerOrdersData, setCustomerOrdersData] = useState<{ username: string, email: string, totalAmount: number, orderDate: string }[]>([]);
+function KindleReadingDataTable() {
+    const { fetchKindleReadingData, error } = useFetchKindleReadingData();
     const [loading, setLoading] = useState(false);
-    const [customerOrdersData, setCustomerOrdersData] = useState<object[]>([]);
-    const handleFetchCustomerOrdersData = async () => {
+    const [kindleReadingData, setKindleReadingData] = useState<object[]>([]);
+
+    const handleFetchKindleReadingData = async () => {
         setLoading(true);
-        const result = await fetchCustomerOrdersData();
-        setCustomerOrdersData(result);
+        const result = await fetchKindleReadingData();
+        setKindleReadingData(result);
         setLoading(false);
     };
 
     useEffect(() => {
         const fetch = async () => {
             setLoading(true);
-            const result = await fetchCustomerOrdersData();
-            setCustomerOrdersData(result);
+            const result = await fetchKindleReadingData();
+            setKindleReadingData(result);
             setLoading(false);
         };
         fetch();
-    }, [fetchCustomerOrdersData]);
+    }, [fetchKindleReadingData]);
 
     // const keys = 
 
     return (
         <div className="p-5">
-            <p className="text-xl"> Customer Orders Data </p>
+            <p className="text-xl"> Kindle Reading Data </p>
             {error && <p className="text-red-500">{error}</p>}
             {loading && <p>Loading...</p>}
             <div className="w-3/4">
-                {customerOrdersData.length > 0 && (
+                {kindleReadingData.length > 0 && <ObservablePlot
+                    options={{
+                        title: 'Page turns',
+                        marks: [
+                            Plot.barX(kindleReadingData, {
+                                x: 'sum(number_of_page_flips)',
+                                y: 'series-product-name',
+                                fill: 'Product Name',
+                                tip: 'xy'
+                            })
+                        ],
+                        marginLeft: 140
+                    }}
+                />}
+
+            </div>
+
+            <div className="w-3/4">
+                {kindleReadingData.length > 0 && (
                     <table className="w-full border-collapse border border-gray-300">
                         <thead>
                             <tr>
-                                {Object.keys(customerOrdersData[0]).map(d => <th key={d} className="border border-gray-300 p-2">{d}</th>)}
+                                {Object.keys(kindleReadingData[0]).map(d => <th key={d} className="border border-gray-300 p-2">{d}</th>)}
 
                             </tr>
                         </thead>
                         <tbody>
-                            {customerOrdersData.map((row, index) => (
+                            {kindleReadingData.map((row, index) => (
                                 <tr key={index} className="hover:bg-gray-400">
                                     {Object.values(row).map((item, cellIndex) => (
                                         <td key={cellIndex} className="border border-gray-300 p-2">
@@ -85,7 +106,7 @@ function CustomerOrdersTable() {
                     </table>
                 )}
             </div>
-            <button onClick={handleFetchCustomerOrdersData} className="px-3 py-1 bg-gray-200 text-gray-800 rounded hover:bg-gray-300" >Refresh</button>
+            <button onClick={handleFetchKindleReadingData} className="px-3 py-1 bg-gray-200 text-gray-800 rounded hover:bg-gray-300" >Refresh</button>
         </div>
     );
 }
@@ -94,7 +115,7 @@ export default function Home() {
     return (
         <div>
             <MotherDuckClientProvider>
-                <CustomerOrdersTable />
+                <KindleReadingDataTable />
             </MotherDuckClientProvider>
         </div>
     );

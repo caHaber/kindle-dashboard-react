@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@motherduck/wasm-client": "^0.6.6",
+    "@observablehq/plot": "^0.6.17",
     "core-js": "^3.39.0",
     "next": "latest",
     "react": "19.0.0-rc-66855b96-20241106",
