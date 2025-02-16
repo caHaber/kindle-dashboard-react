@@ -4,15 +4,7 @@ import { MotherDuckClientProvider, useMotherDuckClientState } from "@/lib/mother
 import HintComponent from "./components/hint";
 import { useCallback, useState, useEffect } from "react";
 
-const SQL_QUERY_STRING = `SELECT 
-    u.username, 
-    u.email, 
-    o.total_amount, 
-    o.order_date::VARCHAR as order_date
-FROM 
-    my_db.main.orders o
-JOIN 
-    my_db.main.users u ON o.user_id = u.user_id;`;
+const SQL_QUERY_STRING = `SELECT * FROM "kindle-data".Kindle_BookRewards_Achievements_1 LIMIT 10`;
 
 const useFetchCustomerOrdersData = () => {
     const { safeEvaluateQuery } = useMotherDuckClientState();
@@ -24,12 +16,7 @@ const useFetchCustomerOrdersData = () => {
             if (safeResult.status === "success") {
                 setError(null);
                 return safeResult.result.data.toRows().map((row) => {
-                    return {
-                        username: row.username?.valueOf() as string,
-                        email: row.email?.valueOf() as string,
-                        totalAmount: row.total_amount?.valueOf() as number,
-                        orderDate: row.order_date?.valueOf() as string,
-                    };
+                    return row;
                 });
 
             } else {
@@ -49,9 +36,9 @@ const useFetchCustomerOrdersData = () => {
 
 function CustomerOrdersTable() {
     const { fetchCustomerOrdersData, error } = useFetchCustomerOrdersData();
-    const [customerOrdersData, setCustomerOrdersData] = useState<{ username: string, email: string, totalAmount: number, orderDate: string }[]>([]);
+    // const [customerOrdersData, setCustomerOrdersData] = useState<{ username: string, email: string, totalAmount: number, orderDate: string }[]>([]);
     const [loading, setLoading] = useState(false);
-
+    const [customerOrdersData, setCustomerOrdersData] = useState<Object[]>([]);
     const handleFetchCustomerOrdersData = async () => {
         setLoading(true);
         const result = await fetchCustomerOrdersData();
@@ -69,6 +56,8 @@ function CustomerOrdersTable() {
         fetch();
     }, [fetchCustomerOrdersData]);
 
+    // const keys = 
+
     return (
         <div className="p-5">
             <p className="text-xl"> Customer Orders Data </p>
@@ -79,19 +68,18 @@ function CustomerOrdersTable() {
                     <table className="w-full border-collapse border border-gray-300">
                         <thead>
                             <tr>
-                                <th className="border border-gray-300 p-2">Username</th>
-                                <th className="border border-gray-300 p-2">Email</th>
-                                <th className="border border-gray-300 p-2">Total Amount</th>
-                                <th className="border border-gray-300 p-2">Order Date</th>
+                                {Object.keys(customerOrdersData[0]).map(d => <th key={d} className="border border-gray-300 p-2">{d}</th>)}
+
                             </tr>
                         </thead>
                         <tbody>
-                            {customerOrdersData.map((orderItem, index) => (
+                            {customerOrdersData.map((row, index) => (
                                 <tr key={index} className="hover:bg-gray-400">
-                                    <td className="border border-gray-300 p-2">{orderItem.username}</td>
-                                    <td className="border border-gray-300 p-2">{orderItem.email}</td>
-                                    <td className="border border-gray-300 p-2 text-right">${orderItem.totalAmount.toFixed(2)}</td>
-                                    <td className="border border-gray-300 p-2">{orderItem.orderDate}</td>
+                                    {Object.values(row).map((item, cellIndex) => (
+                                        <td key={cellIndex} className="border border-gray-300 p-2">
+                                            {String(item)}
+                                        </td>
+                                    ))}
                                 </tr>
                             ))}
                         </tbody>
@@ -108,7 +96,6 @@ export default function Home() {
         <div>
             <MotherDuckClientProvider>
                 <CustomerOrdersTable />
-                <HintComponent />
             </MotherDuckClientProvider>
         </div>
     );
