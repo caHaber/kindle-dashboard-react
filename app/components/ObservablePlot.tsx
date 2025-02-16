@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import * as Plot from "@observablehq/plot";
+import { useDimensions } from '@/lib/hooks/useDimensions';
 
 interface ObservablePlotProps {
     options?: Plot.PlotOptions;
@@ -9,6 +10,7 @@ export const ObservablePlot: React.FC<ObservablePlotProps> = ({
     options = {},
 }) => {
     const containerRef = useRef<HTMLDivElement>(null);
+    const { width } = useDimensions(containerRef);
 
     useEffect(() => {
         if (!containerRef.current) return;
@@ -17,7 +19,7 @@ export const ObservablePlot: React.FC<ObservablePlotProps> = ({
         containerRef.current.innerHTML = '';
 
         // Create the plot
-        const plot = Plot.plot(options);
+        const plot = Plot.plot({ ...options, width });
 
         // Append the plot to the container
         containerRef.current.appendChild(plot);
@@ -25,10 +27,11 @@ export const ObservablePlot: React.FC<ObservablePlotProps> = ({
         // Cleanup function
         return () => {
             if (containerRef.current) {
+                // eslint-disable-next-line react-hooks/exhaustive-deps
                 containerRef.current.innerHTML = '';
             }
         };
-    }, [options]);
+    }, [options, width]);
 
     return (
         <div

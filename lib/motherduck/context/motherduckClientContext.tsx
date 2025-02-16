@@ -64,7 +64,7 @@ export function MotherDuckClientProvider({ children, database }: { children: Rea
       }
     };
     initializeConnection();
-
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const value = useMemo(() => ({
