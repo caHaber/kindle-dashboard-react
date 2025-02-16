@@ -1,7 +1,6 @@
 "use client"
 
 import { MotherDuckClientProvider, useMotherDuckClientState } from "@/lib/motherduck/context/motherduckClientContext";
-import HintComponent from "./components/hint";
 import { useCallback, useState, useEffect } from "react";
 
 const SQL_QUERY_STRING = `SELECT * FROM "kindle-data".Kindle_BookRewards_Achievements_1 LIMIT 10`;
