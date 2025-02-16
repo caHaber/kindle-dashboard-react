@@ -2,10 +2,9 @@
 
 import { MotherDuckClientProvider, useMotherDuckClientState } from "@/lib/motherduck/context/motherduckClientContext";
 import { useCallback, useState, useEffect } from "react";
-import { GET_TOTAL_READING_AND_PAGE_FLIPS } from "@/lib/queries";
 import * as Plot from "@observablehq/plot";
 import { ObservablePlot } from "./components/ObservablePlot";
-// const SQL_QUERY_STRING = `SELECT * FROM "kindle-data".Kindle_BookRewards_Achievements_1 LIMIT 10`;
+import queries from "@/lib/queries";
 
 const useFetchKindleReadingData = () => {
     const { safeEvaluateQuery } = useMotherDuckClientState();
@@ -14,7 +13,7 @@ const useFetchKindleReadingData = () => {
     const fetchKindleReadingData = useCallback(async () => {
         try {
             await safeEvaluateQuery("USE \"kindle-data\"");
-            const safeResult = await safeEvaluateQuery(GET_TOTAL_READING_AND_PAGE_FLIPS.query);
+            const safeResult = await safeEvaluateQuery(queries.totalReadingAndPageFlips.query);
             if (safeResult.status === "success") {
                 setError(null);
                 return safeResult.result.data.toRows().map((row) => {
@@ -58,8 +57,6 @@ function KindleReadingDataTable() {
         fetch();
     }, [fetchKindleReadingData]);
 
-    // const keys = 
-
     return (
         <div className="p-5">
             <p className="text-xl"> Kindle Reading Data </p>
@@ -68,13 +65,21 @@ function KindleReadingDataTable() {
             <div className="w-3/4">
                 {kindleReadingData.length > 0 && <ObservablePlot
                     options={{
+                        x: {
+                            axis: "top",
+                            grid: true,
+                            label: 'Hours read'
+                        },
                         title: 'Page turns',
                         marks: [
                             Plot.barX(kindleReadingData, {
-                                x: 'sum(number_of_page_flips)',
+                                x: d => Number(d['sum(total_reading_millis)']) / 3.6e+6,
                                 y: 'series-product-name',
-                                fill: 'Product Name',
-                                tip: 'xy'
+                                fill: 'series-product-name',
+                                tip: 'xy',
+                                sort: {
+                                    y: '-x'
+                                }
                             })
                         ],
                         marginLeft: 140

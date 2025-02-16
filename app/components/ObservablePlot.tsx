@@ -2,8 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import * as Plot from "@observablehq/plot";
 
 interface ObservablePlotProps {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    options?: any;
+    options?: Plot.PlotOptions;
 }
 
 export const ObservablePlot: React.FC<ObservablePlotProps> = ({
